@@ -1,0 +1,18 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "SQL_USER": "sa",
+    "SQL_PASSWORD": "Fini@123",
+    "SQL_SERVER": "192.168.0.95",
+    "SQL_DATABASE": "VehicleParkingDB3",
+    "JWT_SECRET": "e628d56b23d7e5630200fb5f1297030f0e5f433803a24a550b446c527820605e",
+    "JWT_ALGORITHM": "HS256",
+    "JWT_TTL_SECONDS": "10000",
+    "REFRESH_TTL_SECONDS": "31536000"
+  },
+  "Host": {
+    "CORS": "*"
+  }
+}
