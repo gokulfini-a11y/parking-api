@@ -6,21 +6,28 @@ const dbConfig = {
   server: process.env.SQL_SERVER,
   database: process.env.SQL_DATABASE,
   options: {
-    encrypt: true, // Set to true for Azure SQL
+    encrypt: true, 
     trustServerCertificate: true,
     useUTC: false
   }
 };
 
-export const poolPromise = new sql.ConnectionPool(dbConfig)
-  .connect()
-  .then(pool => {
-    // console.log("Connected to SQL Server");
+let pool = null;
+
+// This function manages the connection
+export const getPool = async () => {
+  if (pool) return pool; // If already connected, reuse it
+
+  try {
+    console.log("Attempting to connect to DB...");
+    pool = await new sql.ConnectionPool(dbConfig).connect();
+    console.log("Connected to SQL Server");
     return pool;
-  })
-  .catch(err => {
-    console.log("Database Connection Failed!", err)
-  });
+  } catch (err) {
+    console.error("Database Connection Failed!", err);
+    pool = null; // Reset so we can try again on next request
+    throw err;
+  }
+};
 
 export { sql };
-
