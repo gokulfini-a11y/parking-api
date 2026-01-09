@@ -6,10 +6,11 @@ import { authMiddleware } from '../middleware/auth.middleware.js';
 app.http('gateway', {
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     authLevel: 'anonymous',
-    route: '{*remainder}', // Note: Azure usually prefixes this with /api/
+    route: '{*remainder}', // Matches /api/anything
     handler: async (request, context) => {
         const path = `/${request.params.remainder || ''}`;
         
+        // 1. Simulate Express 'res' object
         let resStatus = 200;
         let resBody = {};
         const res = {
@@ -17,32 +18,23 @@ app.http('gateway', {
             json: (body) => { resBody = body; return res; }
         };
 
+        // 2. Simulate Express 'req' object
         const req = {
             path: path,
             method: request.method,
             query: Object.fromEntries(new URL(request.url).searchParams),
             headers: Object.fromEntries(request.headers.entries()),
             user: null,
+            // Only parse body for non-GET methods
             body: (request.method !== 'GET') ? await request.json().catch(() => ({})) : {}
         };
 
         try {
-            // --- NEW: TEST ROUTE (No Database) ---
-            if (path === '/health' || path === '/ping') {
-                return { 
-                    status: 200, 
-                    jsonBody: { 
-                        success: true, 
-                        message: "Cloud Gateway is LIVE!", 
-                        timestamp: new Date().toISOString() 
-                    } 
-                };
-            }
-            // -------------------------------------
-
+            // Manual Route: Token Renewal
             if (path === '/auth/renew-token' && request.method === 'POST') {
                 await renewToken(req, res);
             } 
+            // Automatic Routes: SP Executor with Auth Middleware
             else {
                 await new Promise((resolve, reject) => {
                     authMiddleware(req, res, (err) => {
@@ -54,7 +46,6 @@ app.http('gateway', {
 
             return { status: resStatus, jsonBody: resBody };
         } catch (error) {
-            context.error(`Error handling request: ${error.message}`); // Log error to Azure Console
             return { 
                 status: error.status || 500, 
                 jsonBody: { success: false, message: error.message || "Internal Server Error" } 
